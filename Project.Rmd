@@ -1,0 +1,48 @@
+---
+title: "Project"
+output: pdf_document
+---
+
+[**Employees Classifications (basic case)**]{.ul}
+
+1.  PM
+2.  Eng,
+3.  Surveyor,
+4.  Designer
+
+$i$ is set of people {employee 1, employee 2, }
+
+$j$ is set of projects
+
+$k$ is set of classifications {PM, Engineer, Designer, Surveyor}
+
+[**Decision variables:**]{.ul}
+
+-   Integer variable, $X_i,_j,_k$ Hours that an employee $i$ work in functional class $k$ in project $j$
+
+-   Binary variable $Y_i,_j,_k$ = ${0, 1}$ If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
+
+-   Binary variable $A_i,_k$ = ${0, 1}$.
+    can employee $i$ do task $k$
+
+-   Profit $P_i,_k$: Hourly rate for employee $i$ classification $k$ in project $j$ \* 10% \*
+
+[**Objective Function:**]{.ul}
+
+$$
+ \begin{split}
+ \begin{aligned}
+    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} X_{i,j,k} Y_{i,j,k} P_{i,k} \\
+ \end{aligned}
+ \end{split}
+$$
+
+[**Constraints**]{.ul}
+
+-   total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
+
+    -   $\sum_{i=1}^{i=NPeople} \sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} X_i,_j,_k <=1664$ hours
+
+-   total hours assigned to a staff who is classified as PM should not exceed 1040 per year (for next round of modeling)
+
+-   $\sum_{i=1}^{i=NPeople} \sum_{j=1}^{j=NProj} \sum_{k=4}^{k=4} X_i,_j,_k <=1040$
