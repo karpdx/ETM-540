@@ -3,7 +3,7 @@ title: "Project"
 output: pdf_document
 ---
 
-[**Employees Classifications (basic case)**]{.ul}
+### [**Employees Classifications (basic case)**]{.ul}
 
 1.  PM
 2.  Eng,
@@ -25,24 +25,83 @@ $k$ is set of classifications {PM, Engineer, Designer, Surveyor}
 -   Binary variable $A_i,_k$ = ${0, 1}$.
     can employee $i$ do task $k$
 
+-   add E as NTE per project continuous
+
+-   $S_{i,k}$ =1 if employee is qualified to do task $k$
+
 -   Profit $P_i,_k$: Hourly rate for employee $i$ classification $k$ in project $j$ \* 10% \*
+
+-   $E_j$ : not to exceed cost per project
+
+-   $R_{i,k}$: billing rate for $i$ when performing task classification $k$
+
+-   $T_{j,k}$ is total hours per project for task classification $k$
 
 [**Objective Function:**]{.ul}
 
 $$
  \begin{split}
  \begin{aligned}
-    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} X_{i,j,k} Y_{i,j,k} P_{i,k} \\
+    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} X_{i,j,k} P_{i,k} \\
  \end{aligned}
  \end{split}
 $$
 
 [**Constraints**]{.ul}
 
--   total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
+-   [Utilization]{.ul}:total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
 
-    -   $\sum_{i=1}^{i=NPeople} \sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} X_i,_j,_k <=1664$ hours
+    -   $\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
 
--   total hours assigned to a staff who is classified as PM should not exceed 1040 per year (for next round of modeling)
+-   [Cost]{.ul}: for every project total cost should not exceed
 
--   $\sum_{i=1}^{i=NPeople} \sum_{j=1}^{j=NProj} \sum_{k=4}^{k=4} X_i,_j,_k <=1040$
+-   $\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} R_{i,k}\cdot X_{i,j,k} \leq E_j \,\ \forall j$
+
+-   $X_{i,j,k}\leq BigM * Y_{i,j,k} \,\forall i,j,k$
+
+-   $Y_{i,j,k}\leq S_{i,k} \forall i j k$
+
+-   $\sum_{i=1}^{i=NP} X_{i,j,k} \geq T_{j,k} \forall i$
+
+```{r Data}
+
+Classification<-c("PM", "Engineer", "Designer", "Surveyor")
+##Classification of staff
+print (Classification)
+BillingRate <-c(200, 186, 120, 135)
+## Billing Rates per above classiciation in order
+print (BillingRate)
+MaxHours<-1664
+## 2080 hours per year multplied by 80% utilization per staff = 1664
+## we will need to change this to be a variable so each class has its ulitzation factor
+ProfitPerStaff<-0.1*BillingRate
+## profit is assumed 10% per the hourly raet
+Staff<-("St1", "St2", "St3", "St5", "St6", "St7", "St8", "St9", "St10")
+## These are all roster of technical staff workinng at the firm 
+n<-10
+## Number of Staff
+p<-4
+##Number of projects
+c<-4
+## Number of classifications
+
+```
+
+```{r model Variables, constraints, objhective}
+model <- MIPModel()%>%
+add_variable(Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "integer")%>%
+  ## hours assigned to staff i on project j, in a classification k
+    add_variable(Vy[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary")%>%
+  ## whether staff i is assigned to project j in a  classification k
+  add_variable(A[i,k]), i=1:n, k=1:c, type = "binary") %>%
+  ##can staff i, do task k
+  add_variable(R[j,k], i=1:n, j=1:p), type = "integer")%>%
+  ##  hours needed for prjtec i to perform task in classification k
+    add_variable (C[i], i=1:n, type = "integer")%>%
+    set_objective(sum_expr(Vx[i,j,k]*))
+  
+```
+
+```{r output}
+
+```
