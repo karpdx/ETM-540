@@ -58,20 +58,37 @@ $$
 
 5.  $\sum_{i=1}^{i=NP} X_{i,j,k} \geq T_{j,k} \forall i$
 
+Including the libraries:
+
+```{r}
+library(ompr, quietly = TRUE)
+library(magrittr, quietly = TRUE)
+library(pander, quietly = TRUE)
+library(ROI, quietly = TRUE)
+library(ROI.plugin.glpk, quietly = TRUE)
+library(ompr.roi, quietly = TRUE)
+library(pander, quietly = TRUE)
+library(TRA)
+library(Benchmarking, quietly=TRUE)
+```
+
+
 ```{r Data}
 
 Classification<-c("PM", "Engineer", "Designer", "Surveyor")
 ##Classification of staff
-print (Classification)
-BillingRate <-c(200, 186, 120, 135)
+BillingRate <-matrix(c(200, 186, 120, 135), ncol = 4, nrow = 4,
+                     dimnames = c(list(c("P1", "P2", "P3", "P4")),
+                                  list(c("PM", "Engineer", "Designer", "Surveyor")))
+                     )
 ## Billing Rates per above classiciation in order
 print (BillingRate)
 MaxHours<-1664
-## 2080 hours per year multplied by 80% utilization per staff = 1664
+## 2080 hours per year multiplied by 80% utilization per staff = 1664
 ## we will need to change this to be a variable so each class has its ulitzation factor
 ProfitPerStaff<-0.1*BillingRate
-## profit is assumed 10% per the hourly raet
-Staff<-("St1", "St2", "St3", "St5", "St6", "St7", "St8", "St9", "St10")
+## profit is assumed 10% per the hourly rate
+Staff<-matrix(c("St1","St2", "St3", "St4", "St5", "St6", "St7", "St8", "St9", "St10"), ncol = 10)
 ## These are all roster of technical staff workinng at the firm 
 n<-10
 ## Number of Staff
@@ -80,17 +97,19 @@ p<-4
 c<-4
 ## Number of classifications
 
+
+
 ```
 
 ```{r model Variables, constraints, objhective}
 model <- MIPModel()%>%
-add_variable(Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "continuous")%>%
+add_variable(Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "continuous") %>%
   ## hours assigned to staff i on project j, in a classification k
-    add_variable(Vy[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary")%>%
+    add_variable(Vy[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary") %>%
   ## whether staff i is assigned to project j in a  classification k
-  add_variable(S[i,k]), i=1:n, k=1:c, type = "binary") %>%
+  add_variable(S[i,k], i=1:n, k=1:c, type = "binary") %>%
   ##can staff i, do task k
-  add_variable(R[i,k], i=1:n, k=1:c), type = "continuous")%>%
+  add_variable(R[i,k], i=1:n, k=1:c, type = "continuous") %>%
   ##  hours needed for prjtec i to perform task in classification k
     add_variable (T[j,k], j=1:p, k=1:c, type = "continuous")%>%
     ## profit per staff
