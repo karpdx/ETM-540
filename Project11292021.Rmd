@@ -22,9 +22,8 @@ $k$ is set of classifications {PM, Engineer, Designer, Surveyor}
 
 2.  $Y_i,_j,_k$ = ${0, 1}$ Binary variable, If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
 
-```{=html}
 <!-- -->
-```
+
     ## $A_i,_k$ = ${0, 1}$ binary, can employee $i$ do task $k$
 
 3.  $S_{i,k}$ =1 if employee is qualified to do task $k$
@@ -73,6 +72,11 @@ library(ompr.roi, quietly = TRUE)
 library(pander, quietly = TRUE)
 library(TRA)
 library(Benchmarking, quietly=TRUE)
+library(ROI.plugin.glpk)
+library(ROI.plugin.lpsolve)
+library(ROI.plugin.neos)
+library(ROI.plugin.symphony)
+#library(ROI.plugin.cplex)
 ```
 
 ```{r Data}
@@ -82,7 +86,7 @@ BillingRate <-matrix(c(200, 186, 120, 135), ncol = 4, nrow = 4,
                      dimnames = c(list(c("P1", "P2", "P3", "P4")),
                                   list(c("PM", "Engineer", "Designer", "Surveyor")))
                      )
-## Billing Rates per above classiciation in order
+## Billing Rates per above classification in order
 print (BillingRate)
 MaxHours<-1664
 ## 2080 hours per year multiplied by 80% utilization per staff = 1664
@@ -90,7 +94,7 @@ MaxHours<-1664
 ProfitPerStaff<-0.1*BillingRate
 ## profit is assumed 10% per the hourly rate
 Staff<-matrix(c("St1","St2", "St3", "St4", "St5", "St6", "St7", "St8", "St9", "St10"), ncol = 10)
-## These are all roster of technical staff workinng at the firm 
+## These are all roster of technical staff working at the firm 
 n<-10
 ## Number of Staff
 p<-4
@@ -108,24 +112,18 @@ add_variable(Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "continuous") %>%
   add_variable(S[i,k], i=1:n, k=1:c, type = "binary") %>%
   ##can staff i, do task k
   add_variable(R[i,k], i=1:n, k=1:c, type = "continuous") %>%
-  ##  hours needed for prjtec i to perform task in classification k
+  ##  hours needed for project i to perform task in classification k
     add_variable (T[j,k], j=1:p, k=1:c, type = "continuous")%>%
     ## profit per staff
     add_variable (P[i,k], i=1:n, k=1:c, type = "continuous")%>%
-    ## Not to exceed amout of each project j
+    ## Not to exceed amount of each project j
     add_variable (E[j], j=1:p, type="continuous") %>%
     
     
     set_objective(sum_expr((Vx[i,j,k]*P[i,j]), i=1:n, j=1:p, k=1:c), "max") %>%
     
     add_constraint (sum_expr (sum_expr( sum_expr(X[i,j,k], i=1:n), j=1:p), k=1:c) <=1664)
-add_constraint (sum_expr (sum_expr (R[i,k]*X[i,j,k]))<=E[j] i=1:n, j=1:p, k=1:c)
+add_constraint (sum_expr (sum_expr (R[i,k]*X[i,j,k],i=1:n), k=1:c) <= E[j] , j=1:p)
 add_constraint (y[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c)
-add_constraint (sum_expr (X[i,j,k]>= T[j,k]), i=1:n, p=1:j, k=1:c))
-  
-
-
-    
-  
-  
+add_constraint (sum_expr (X[i,j,k] >= T[j,k]), i=1:n, p=1:j, k=1:c)
 ```
