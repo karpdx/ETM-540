@@ -1,0 +1,131 @@
+---
+title: "Untitled"
+author: "Riad Alharithi"
+date: "11/29/2021"
+output: pdf_document
+---
+
+1.  PM
+2.  Eng,
+3.  Surveyor,
+4.  Designer
+
+$i$ is set of people {employee 1, employee 2, }
+
+$j$ is set of projects
+
+$k$ is set of classifications {PM, Engineer, Designer, Surveyor}
+
+[**Decision variables:**]{.ul}
+
+1.  $X_i,_j,_k$ [Continuous]{.ul}: Hours that an employee $i$ work in functional class $k$ in project $j$
+
+2.  $Y_i,_j,_k$ = ${0, 1}$ Binary variable, If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
+
+```{=html}
+<!-- -->
+```
+    ## $A_i,_k$ = ${0, 1}$ binary, can employee $i$ do task $k$
+
+3.  $S_{i,k}$ =1 if employee is qualified to do task $k$
+
+4.  $P_i,_k$: Profit, Hourly rate for employee $i$ classification $k$ in project $j$ \* 10% \*
+
+5.  $E_j$ : project budget = Not to Exceed (NTE) cost per project
+
+6.  $R_{i,k}$: billing rate for $i$ when performing task classification $k$
+
+7.  $T_{j,k}$ is Total hours per project for task classification $k$
+
+[**Objective Function:**]{.ul}
+
+$$
+ \begin{split}
+ \begin{aligned}
+    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} X_{i,j,k} P_{i,k} \\
+ \end{aligned}
+ \end{split}
+$$
+
+[**Constraints**]{.ul}
+
+[Utilization]{.ul}:total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
+
+1.  $\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
+
+2.  $\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} R_{i,k}\cdot X_{i,j,k} \leq E_j \,\ \forall j$
+
+3.  $X_{i,j,k}\leq BigM * Y_{i,j,k} \,\forall i,j,k$
+
+4.  $Y_{i,j,k}\leq S_{i,k} \forall i j k$
+
+5.  $\sum_{i=1}^{i=NP} X_{i,j,k} \geq T_{j,k} \forall i$
+
+Including the libraries:
+
+```{r}
+library(ompr, quietly = TRUE)
+library(magrittr, quietly = TRUE)
+library(pander, quietly = TRUE)
+library(ROI, quietly = TRUE)
+library(ROI.plugin.glpk, quietly = TRUE)
+library(ompr.roi, quietly = TRUE)
+library(pander, quietly = TRUE)
+library(TRA)
+library(Benchmarking, quietly=TRUE)
+```
+
+```{r Data}
+Classification<-c("PM", "Engineer", "Designer", "Surveyor")
+##Classification of staff
+BillingRate <-matrix(c(200, 186, 120, 135), ncol = 4, nrow = 4,
+                     dimnames = c(list(c("P1", "P2", "P3", "P4")),
+                                  list(c("PM", "Engineer", "Designer", "Surveyor")))
+                     )
+## Billing Rates per above classiciation in order
+print (BillingRate)
+MaxHours<-1664
+## 2080 hours per year multiplied by 80% utilization per staff = 1664
+## we will need to change this to be a variable so each class has its ulitzation factor
+ProfitPerStaff<-0.1*BillingRate
+## profit is assumed 10% per the hourly rate
+Staff<-matrix(c("St1","St2", "St3", "St4", "St5", "St6", "St7", "St8", "St9", "St10"), ncol = 10)
+## These are all roster of technical staff workinng at the firm 
+n<-10
+## Number of Staff
+p<-4
+##Number of projects
+c<-4
+## Number of classifications
+```
+
+```{r model Variables, constraints, objhective}
+model <- MIPModel()%>%
+add_variable(Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "continuous") %>%
+  ## hours assigned to staff i on project j, in a classification k
+    add_variable(Vy[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary") %>%
+  ## whether staff i is assigned to project j in a  classification k
+  add_variable(S[i,k], i=1:n, k=1:c, type = "binary") %>%
+  ##can staff i, do task k
+  add_variable(R[i,k], i=1:n, k=1:c, type = "continuous") %>%
+  ##  hours needed for prjtec i to perform task in classification k
+    add_variable (T[j,k], j=1:p, k=1:c, type = "continuous")%>%
+    ## profit per staff
+    add_variable (P[i,k], i=1:n, k=1:c, type = "continuous")%>%
+    ## Not to exceed amout of each project j
+    add_variable (E[j], j=1:p, type="continuous") %>%
+    
+    
+    set_objective(sum_expr((Vx[i,j,k]*P[i,j]), i=1:n, j=1:p, k=1:c), "max") %>%
+    
+    add_constraint (sum_expr (sum_expr( sum_expr(X[i,j,k], i=1:n), j=1:p), k=1:c) <=1664)
+add_constraint (sum_expr (sum_expr (R[i,k]*X[i,j,k]))<=E[j] i=1:n, j=1:p, k=1:c)
+add_constraint (y[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c)
+add_constraint (sum_expr (X[i,j,k]>= T[j,k]), i=1:n, p=1:j, k=1:c))
+  
+
+
+    
+  
+  
+```
