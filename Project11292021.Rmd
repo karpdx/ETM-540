@@ -58,7 +58,7 @@ $$
 
 4.  $Y_{i,j,k}\leq S_{i,k} \forall i j k$
 
-5.  $\sum_{i=1}^{i=NP} X_{i,j,k} \geq T_{j,k} \forall i$
+5.  $\sum_{i=1}^{i=NP} X_{i,j,k} \leq T_{j,k} \forall i$
 
 Including the libraries:
 
