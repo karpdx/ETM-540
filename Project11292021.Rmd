@@ -19,7 +19,7 @@ $k$ is set of classifications {PM, Engineer, Designer, Surveyor}
 [**Decision variables:**]{.ul}
 
 1.  $X_i,_j,_k$ [Continuous]{.ul}: Hours that an employee $i$ work in functional class $k$ in project $j$
-
+ 
 2.  $Y_i,_j,_k$ = ${0, 1}$ Binary variable, If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
 
 <!-- -->
@@ -82,19 +82,24 @@ library(ROI.plugin.symphony)
 ```{r Data}
 Classification<-c("PM", "Engineer", "Designer", "Surveyor")
 ##Classification of staff
-BillingRate <-matrix(c(200, 186, 120, 135), ncol = 4, nrow = 4,
+BillingRate <- c(200, 186, 120, 135) 
+Billing <-matrix(c(200, 186, 120, 135), ncol = 4, nrow = 4,
                      dimnames = c(list(c("P1", "P2", "P3", "P4")),
                                   list(c("PM", "Engineer", "Designer", "Surveyor")))
                      )
 ## Billing Rates per above classification in order
-print (BillingRate)
 MaxHours<-1664
 ## 2080 hours per year multiplied by 80% utilization per staff = 1664
 ## we will need to change this to be a variable so each class has its ulitzation factor
 ProfitPerStaff<-0.1*BillingRate
+print (ProfitPerStaff)
 ## profit is assumed 10% per the hourly rate
 Staff<-matrix(c("St1","St2", "St3", "St4", "St5", "St6", "St7", "St8", "St9", "St10"), ncol = 10)
 ## These are all roster of technical staff working at the firm 
+
+MaxhoursPerClass <- c(200, 200, 400, 100)
+print(MaxhoursPerClass[3])
+
 n<-10
 ## Number of Staff
 p<-4
@@ -113,17 +118,16 @@ add_variable(Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "continuous") %>%
   ##can staff i, do task k
   add_variable(R[i,k], i=1:n, k=1:c, type = "continuous") %>%
   ##  hours needed for project i to perform task in classification k
-    add_variable (T[j,k], j=1:p, k=1:c, type = "continuous")%>%
+    #add_variable (T[j,k], j=1:p, k=1:c, type = "continuous")%>%
     ## profit per staff
-    add_variable (P[i,k], i=1:n, k=1:c, type = "continuous")%>%
+    #add_variable (ProfitPerStaff[i,k], i=1:n, k=1:c, type = "continuous")%>%
     ## Not to exceed amount of each project j
     add_variable (E[j], j=1:p, type="continuous") %>%
     
+    set_objective(sum_expr((Vy[i,j,k]*Billing[i,j]*0.1), i=1:n, j=1:p, k=1:c), "max") %>%
     
-    set_objective(sum_expr((Vx[i,j,k]*P[i,j]), i=1:n, j=1:p, k=1:c), "max") %>%
-    
-    add_constraint (sum_expr (sum_expr( sum_expr(X[i,j,k], i=1:n), j=1:p), k=1:c) <=1664)
-add_constraint (sum_expr (sum_expr (R[i,k]*X[i,j,k],i=1:n), k=1:c) <= E[j] , j=1:p)
-add_constraint (y[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c)
-add_constraint (sum_expr (X[i,j,k] >= T[j,k]), i=1:n, p=1:j, k=1:c)
+    #add_constraint (sum_expr (sum_expr( sum_expr(Vx[i,j,k], i=1:n), j=1:p), k=1:c) <=1664) %>%
+    #add_constraint (sum_expr (sum_expr (R[i,k]*Vx[i,j,k],i=1:n), k=1:c) <= E[j] , j=1:p) %>%
+    add_constraint (Vy[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c) %>%
+    add_constraint (sum_expr (Vx[i,j,k], i=1:n, j=1:p, k=1:c) <= MaxhoursPerClass[k], k=1:4)
 ```
