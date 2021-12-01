@@ -97,37 +97,47 @@ print (ProfitPerStaff)
 Staff<-matrix(c("St1","St2", "St3", "St4", "St5", "St6", "St7", "St8", "St9", "St10"), ncol = 10)
 ## These are all roster of technical staff working at the firm 
 
-MaxhoursPerClass <- c(200, 200, 400, 100)
-print(MaxhoursPerClass[3])
 
+ProfitPerClass<- matrix(c(200, 400, 400, 400, 600, 400, 350,
+                 400, 75, 150, 300, 400, 750, 100,
+                 300, 120, 300, 400, 650, 450, 400)*0.1,
+               nrow = 7, ncol = 3)
+ProfitPerClass
 n<-10
 ## Number of Staff
-p<-4
+p<-3
 ##Number of projects
-c<-4
+c<-7
 ## Number of classifications
 ```
 
+
 ```{r model Variables, constraints, objhective}
-model <- MIPModel()%>%
-add_variable(Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "continuous") %>%
+model <- MIPModel() %>%
+    add_variable(Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "continuous") %>%
   ## hours assigned to staff i on project j, in a classification k
     add_variable(Vy[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary") %>%
   ## whether staff i is assigned to project j in a  classification k
-  add_variable(S[i,k], i=1:n, k=1:c, type = "binary") %>%
+    add_variable(S[i,k], i=1:n, k=1:c, type = "binary") %>%
   ##can staff i, do task k
-  add_variable(R[i,k], i=1:n, k=1:c, type = "continuous") %>%
+    #add_variable(R[i,k], i=1:n, k=1:c, type = "continuous") %>%
   ##  hours needed for project i to perform task in classification k
     #add_variable (T[j,k], j=1:p, k=1:c, type = "continuous")%>%
     ## profit per staff
     #add_variable (ProfitPerStaff[i,k], i=1:n, k=1:c, type = "continuous")%>%
     ## Not to exceed amount of each project j
-    add_variable (E[j], j=1:p, type="continuous") %>%
+    #add_variable (E[j], j=1:p, type="continuous") %>%
     
-    set_objective(sum_expr((Vy[i,j,k]*Billing[i,j]*0.1), i=1:n, j=1:p, k=1:c), "max") %>%
+    set_objective(sum_expr(ProfitPerClass[k, j] * Vy[i, j, k], i=1:n, j=1:3, k=1:c), "max") %>% 
     
     #add_constraint (sum_expr (sum_expr( sum_expr(Vx[i,j,k], i=1:n), j=1:p), k=1:c) <=1664) %>%
     #add_constraint (sum_expr (sum_expr (R[i,k]*Vx[i,j,k],i=1:n), k=1:c) <= E[j] , j=1:p) %>%
-    add_constraint (Vy[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c) %>%
-    add_constraint (sum_expr (Vx[i,j,k], i=1:n, j=1:p, k=1:c) <= MaxhoursPerClass[k], k=1:4)
+    add_constraint (Vy[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c)
+    #add_constraint (sum_expr (Vx[i,j,k], i=1:n, j=1:p, k=1:c) <= Hours[k, j], k=1:7, j=1:3)
+
+model
+
+result <- solve_model(model, with_ROI(solver = "glpk"))
+result
 ```
+
