@@ -52,17 +52,23 @@ $$
 
 [**Constraints**]{.ul}
 
-[Utilization]{.ul}:total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
+Utilization: Total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
 
-1.  $\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
+$\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
 
-2.  $\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} R_{i,k}\cdot X_{i,j,k} \leq E_j \,\ \forall j$
+Budget Constraints: every project has its budget $E_j$. The total hours assigned to staff $i$ on project $j$ multiplied by the hourly rate for the classification $k$ he is performing should be less than $E_j$
 
-3.  $X_{i,j,k}\leq BigM * Y_{i,j,k} \,\forall i,j,k$
+$\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} R_{i,k}\cdot X_{i,j,k} \leq E_j \,\ \forall j$
 
-4.  $Y_{i,j,k}\leq S_{i,k} \forall i j k$
+$X_{i,j,k}\leq BigM * Y_{i,j,k} \,\forall i,j,k$
 
-5.  $\sum_{i=1}^{i=NP} X_{i,j,k} \leq T_{j,k} \forall i$
+Skills set: Every staff $i$ assigned on any project $j$ should have the appropriate skill. for example, Junior Engineer can not do Senior Engineer task but the opposite is correct.
+
+$Y_{i,j,k}\leq S_{i,k}\ \forall\ i, j, k$
+
+Total Hours constraints:  the total hours for each staff $i$ on every project should be less than or equal than the negotiated hours in the project budget.
+
+$\sum_{i=1}^{i=NP} X_{i,j,k} \leq T_{j,k} \forall i$
 
 Including the libraries:
 
