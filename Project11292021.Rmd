@@ -16,25 +16,21 @@ $j$ is set of projects
 
 $k$ is set of classifications {PM, Engineer, Designer, Surveyor}
 
-[**Decision variables:**]{.ul}
+[**Data:**]{.ul}
 
-1.  $X_i,_j,_k$ [Continuous]{.ul}: Hours that an employee $i$ work in functional class $k$ in project $j$
- 
-2.  $Y_i,_j,_k$ = ${0, 1}$ Binary variable, If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
+$X_i,_j,_k$ Continuous: Hours that an employee $i$ work in functional class $k$ in project $j$
 
-<!-- -->
+$Y_i,_j,_k$ = ${0, 1}$ Binary variable, If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
 
-    ## $A_i,_k$ = ${0, 1}$ binary, can employee $i$ do task $k$
+$S_{i,k}$ =1 Binary, if employee is qualified to do task $k$
 
-3.  $S_{i,k}$ =1 if employee is qualified to do task $k$
+$P_i,_k$: Continuous, Profit = Hourly rate for employee $i$ classification $k$ in project $j$ * 10% *
 
-4.  $P_i,_k$: Profit, Hourly rate for employee $i$ classification $k$ in project $j$ \* 10% \*
+$E_j$ : Continuous, Project budget = Not to Exceed (NTE) cost per project
 
-5.  $E_j$ : project budget = Not to Exceed (NTE) cost per project
+$R_{i,k}$: Continuous, billing rate for $i$ when performing task classification $k$
 
-6.  $R_{i,k}$: billing rate for $i$ when performing task classification $k$
-
-7.  $T_{j,k}$ is Total hours per project for task classification $k$
+$T_{j,k}$ Continuous,  Total hours per project for task classification $k$
 
 [**Objective Function:**]{.ul}
 
