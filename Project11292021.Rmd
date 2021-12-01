@@ -45,6 +45,14 @@ $$
  \end{aligned}
  \end{split}
 $$
+$$
+ \begin{split}
+ \begin{aligned}
+    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} ProfitPerClass_{k, j}*Vy_{i, j, k} \\
+ \end{aligned}
+ \end{split}
+$$
+
 
 [**Constraints**]{.ul}
 
