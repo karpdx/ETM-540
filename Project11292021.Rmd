@@ -1,33 +1,33 @@
 ---
-title: "Untitled"
+title: "Project11292021"
 author: "Riad Alharithi"
 date: "12/1/2021"
 output: pdf_document
 ---
 
-$i$ is set of people {employee 1, employee 2, }
+$i$ is set of Employees {Emp1, Em2, ..}
 
-$j$ is set of projects
+$j$ is set of projects { P1, P2, ..}
 
-$k$ is set of classifications {PM, Engineer, Designer, Surveyor}
+$k$ is set of classifications {PM, Senior Engineer, Junior Engineer, Senior Designer, Junior Designer, CAD Drafter, Surveyor}
 
 [**Variable:**]{.ul}
 
-$X_i,_j,_k$ Continuous: Hours that an employee $i$ work in functional class $k$ in project $j$
+$X_i,_j,_k$ [Continuous]{.ul}: Hours that an employee $i$ work in functional class $k$ in project $j$
 
-$Y_i,_j,_k$ = ${0, 1}$ Binary variable, If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
+$Y_i,_j,_k$ = ${0, 1}$ [Binary]{.ul} variable, If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
 
 ### Data
 
-$S_{i,k}$ =1 Binary, if employee is qualified to do task $k$
+$S_{i,k}$ =1 [Binary]{.ul}, if employee is qualified to do task $k$
 
-$P_i,_k$: Continuous, Profit = Hourly rate for employee $i$ classification $k$ in project $j$ \* 10% \*
+$P_i,_k$: [Continuous]{.ul}, Profit = Hourly rate for employee $i$ classification $k$ in project $j$ \* 10% \*
 
-$E_j$ : Continuous, Project budget = Not to Exceed (NTE) cost per project
+$E_j$ : [Continuous]{.ul}, Project budget = Not to Exceed (NTE) cost per project
 
-$R_{i,k}$: Continuous, billing rate for $i$ when performing task classification $k$
+$R_{i,k}$: [Continuous]{.ul}, billing rate for $i$ when performing task classification $k$
 
-$T_{j,k}$ Continuous, Total hours per project for task classification $k$
+$T_{j,k}$ [Continuous]{.ul}, Total hours per project for task classification $k$
 
 [**Objective Function:**]{.ul}
 
@@ -43,7 +43,7 @@ $$
 
 Utilization: Total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
 
-$\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
+$\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=10} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
 
 Budget Constraints: every project has its budget $E_j$.
 The total hours assigned to staff $i$ on project $j$ multiplied by the hourly rate for the classification $k$ he is performing should be less than $E_j$
@@ -84,11 +84,12 @@ library(readr)
 ```{r Data}
 
 DAta<-readr::read_csv("//Users/riad/!Riad/PhD/Classes/ETM 640/Project/DataEntryFile.csv")
-StaffSkills<- readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/StaffSKills.csv")
-ProfitPerClass<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/ProfitPerStaff.csv")
-ProfitPerProject<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/ProfitPerProjectPerClass.csv")
+TS<- readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/StaffSKills.csv")
+S<-t(TS)
+TP<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/ProfitPerStaff.csv")
+P<-t(TP)
+Z<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/ProfitPerProjectPerClass.csv")
 
-Classification<-as.matrix(StaffSkills[,1])
 ##Classification of staff
 BillingRate <- as.matrix(DAta[,1]) 
 ##Billing <-matrix(c(200, 186, 120, 135), ncol = 4, nrow = 4,
@@ -102,32 +103,28 @@ MaxHours<-1664
 ##ProfitPerStaff<-0.1*BillingRate
 ##print (ProfitPerStaff)
 ## profit is assumed 10% per the hourly rate
-Staff<-matrix(c("E1","E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10"), ncol = 10)
+Employee<-matrix(c("E1","E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10"), ncol = 10)
 ## These are all roster of technical staff working at the firm 
 
 n<-10
 ## Number of Staff
-p<-3
+p<-6
 ##Number of projects
 c<-7
 ## Number of classifications
 ```
 
-```{r model Variables, constraints, objhective}
-model <- MIPModel() %>%
-   add_variable( Vx[i,j,k], i=1:n, j=1:p, k=1:c, type= "continuous")%>% 
+```{r model Variables, objective, Constraints}
+model <- MIPModel() 
+model<-   add_variable(model, X[i,j,k], i=1:n, j=1:p, k=1:c, lb=0, type= "continuous")
   
-   add_variable Vy[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary") %>%
+model<- add_variable(model, Y[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary") 
+model<- set_objective(model, sum_expr((X[i,j,k]*P[i,k]), i=1:n, j=1:p, k=1:c), "max")
     
-    add_variable( S[i,k], i=1:n, k=1:c, type = "binary") %>%
-    
-    set_objective(sum_expr(ProfitPerClass[k, j] * Vy[i, j, k], i=1:n, j=1:3, k=1:c), "max") %>%
-    
-    add_constraint (Vy[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c)%>%
-    add_constraint()
+model<- add_constraint (model, Y[i,j,k]==S[i,k], i=1:n, j=1:p, k=1:c)
+  
+model<- add_constraint(model,sum_expr(X[i,j,k], i=1:n, j=1:p, k=1:c)<=1664)
 
-    
-model
 result <- solve_model(model, with_ROI(solver = "glpk"))
 result
 ```
