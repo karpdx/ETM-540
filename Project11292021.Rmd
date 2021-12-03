@@ -41,23 +41,24 @@ $$
 
 [**Constraints**]{.ul}
 
+$\forall i \sum_{n=0}^{n=k-1} X_{n,j}\cdot\$
+
 Utilization: Total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
 
 $\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=10} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
 
-Budget Constraints: every project has its budget $E_j$. The total hours assigned to staff $i$ on project $j$ multiplied by the hourly rate for the classification $k$ he is performing should be less than $E_j$
+T is in place of the Big M
 
-$\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=3} R_{i,k}\cdot X_{i,j,k} \leq E_j \,\ \forall j$
+$X_{i,j,k}\leq T[j,k] * Y_{i,j,k} \,\forall i,j,k$
 
-$X_{i,j,k}\leq BigM * Y_{i,j,k} \,\forall i,j,k$
+Skills set: Every staff $i$ assigned on any project $j$ should have the appropriate skill.
+for example, Junior Engineer can not do Senior Engineer task but the opposite is correct.
 
-Skills set: Every staff $i$ assigned on any project $j$ should have the appropriate skill. for example, Junior Engineer can not do Senior Engineer task but the opposite is correct.
-
-$Y_{i,j,k}= S_{i,k}\ \forall\ i, j, k$
+$Y_{i,j,k}<= S_{i,k}\ \forall\ i, j, k$
 
 Total Hours constraints: the total hours for each staff $i$ on every project should be less than or equal than the negotiated hours in the project budget.
 
-$\sum_{i=1}^{i=NP} X_{i,j,k} = T_{j,k} \forall j,k$
+$\sum_{i=1}^{i=NP} X_{i,j,k} \geq T_{j,k} \forall j,k$
 
 Including the libraries:
 
@@ -81,29 +82,12 @@ library(readr)
 
 ```{r Data}
 
-DAta<-readr::read_csv("/Users/Karthik/Documents/EMT_540/ETM-540/DataEntryFile.csv")
-TS<- readr::read_csv("/Users/Karthik/Documents/EMT_540/ETM-540/StaffSKills.csv")
+XIJ<-readr::read_csv("//Users/riad/!Riad/PhD/Classes/ETM 640/Project/XIJ.csv")
+TS<- readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/StaffSKills.csv")
 S<-t(TS)
-TP<-readr::read_csv("/Users/Karthik/Documents/EMT_540/ETM-540/ProfitPerStaff.csv")
+TP<-readr::read_csv("//Users/riad/!Riad/PhD/Classes/ETM 640/Project/PIK.csv")
 P<-t(TP)
-Z<-readr::read_csv("/Users/Karthik/Documents/EMT_540/ETM-540/ProfitPerProjectPerClass.csv")
-Td <- t(DAta) #t(DAta[1:7,3:8])
-##Classification of staff
-BillingRate <- as.matrix(DAta[,1]) 
-##Billing <-matrix(c(200, 186, 120, 135), ncol = 4, nrow = 4,
-##                     dimnames = c(list(c("P1", "P2", "P3", "P4")),
-##                                  list(c("PM", "Engineer", "Designer", "Surveyor")))
-##                     )
-## Billing Rates per above classification in order
-MaxHours<-1664
-## 2080 hours per year multiplied by 80% utilization per staff = 1664
-## we will need to change this to be a variable so each class has its ulitzation factor
-##ProfitPerStaff<-0.1*BillingRate
-##print (ProfitPerStaff)
-## profit is assumed 10% per the hourly rate
-Employee<-matrix(c("E1","E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10"), ncol = 10)
-## These are all roster of technical staff working at the firm 
-
+Td <- t(XIJ)
 n<-10
 ## Number of Staff
 p<-6
@@ -120,21 +104,14 @@ model<- add_variable(model, Y[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary")
 model<- set_objective(model, sum_expr((X[i,j,k]*P[i,k]), i=1:n, j=1:p, k=1:c), "max")
     
 model<- add_constraint (model, Y[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c)
-
 model<- add_constraint(model,sum_expr(X[i,j,k], j=1:p, k=1:c) <=1664, i=1:n)
-
 model<- add_constraint(model,sum_expr(X[i,j,k],i=1:n) == Td[j,k], j=1:p, k=1:c)
-
 model<- add_constraint (model, X[i,j,k]<=Td[j,k]*Y[i,j,k], i=1:n, j=1:p, k=1:c)
-
 result <- solve_model(model, with_ROI(solver = "glpk"))
 result
 ```
 
 ```{r}
-result$solution
-#sum_expr(X[i,j,k],i=1:n)
 
-#Td[1:6,1:7]
-
+AssignedHours<-matrix( ncol=p, nrow = n, type="continuous")
 ```
