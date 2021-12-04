@@ -1,0 +1,154 @@
+---
+title: "Team 2 Resource Allocation"
+author: "Riad Alharithi, Karthik Manjunath, Jennifer Lynn Zeitouni, Sara Ferdousi, Vladislav Ruchin "
+date: "12/1/2021"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+## Resource Allocation Model
+
+### Variables
+
+$i$ is set of Employees {E1, E2, ..} varies from 1 to $n=$ total number of employees
+
+$j$ is set of projects { P1, P2, ..} varies one to $p=$ total number of projects
+
+$k$ is set of classifications {class 1, class 2, ..} varies from 1 to $c=$ number of classifications at the company
+
+$X_i,_j,_k$ [Continuous]{.ul}: Hours that an employee $i$ work in functional class $k$ in project $j$
+
+$Y_i,_j,_k$ = ${0, 1}$ [Binary]{.ul} variable, If employee $i$ is assigned to classification $k$ for project $j$ then $y_i,_j,_k$is 1 otherwise it is 0.
+
+### Data
+
+$S_{i,k}$ =1 [Binary]{.ul}, if employee is qualified to do task $k$
+
+$P_i,_k$: [Continuous]{.ul}, Profit = Hourly rate for employee $i$ classification $k$ in project $j$ \* 10% \*
+
+$R_{i,k}$: [Continuous]{.ul}, billing rate for $i$ when performing task classification $k$
+
+$T_{j,k}$ [Continuous]{.ul}, Total hours per project for task classification $k$
+
+### **Objective Function:**
+
+$$
+ \begin{split}
+ \begin{aligned}
+    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} X_{i,j,k} \cdot P_{i,k} \\
+ \end{aligned}
+ \end{split}
+$$
+
+### **Constraints**
+
+-   Utilization: Total hours assigned to a employee who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
+
+$\sum_{j=1}^{j=p} \sum_{k=1}^{k=c} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
+
+-   Big M: Linking the constraints, in this scenario each employee can not be assigned more than the total hours per task
+
+$X_{i,j,k}\leq T[j,k] * Y_{i,j,k} \,\forall i,j,k$
+
+-   Skills set: Every employee $i$ assigned on any project $j$ should have the appropriate skill.
+    for example, Junior Engineer can not do Senior Engineer task but the opposite is correct.
+
+$Y_{i,j,k}\leq S_{i,k}\ \forall\ i, j, k$
+
+-   Total Hours constraints: the total hours for each employee $i$ on every project should be less than or equal than the negotiated hours in the project budget.
+
+$\sum_{i=1}^{i=n} X_{i,j,k} \geq T_{j,k} \forall j,k$
+
+## Code
+
+### Libraries Setup
+
+```{r }
+library(ompr, quietly = TRUE)
+library(magrittr, quietly = TRUE)
+library(pander, quietly = TRUE)
+library(ROI, quietly = TRUE)
+library(ROI.plugin.glpk, quietly = TRUE)
+library(ompr.roi, quietly = TRUE)
+library(pander, quietly = TRUE)
+library (devtools)
+devtools::install_github("prof-anderson/TRA")
+library(TRA)
+library(Benchmarking, quietly=TRUE)
+library(ROI.plugin.glpk)
+library(ROI.plugin.lpsolve)
+library(ROI.plugin.neos)
+library(ROI.plugin.symphony)
+library(readr)
+```
+
+### Reading Data
+
+```{r}
+
+XIJ<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/XIJ.csv")
+TS<- readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/StaffSKills.csv")
+S<-t(TS)
+TP<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/PIK.csv")
+P<-t(TP)
+Td <- t(XIJ)
+Assignement_Table<-matrix(0, nrow=10, ncol=9)
+Billingrate<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/BillingRates.csv")
+Classifications<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/Classifications.csv")
+UtilizationRate<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/UtilizationRate.csv")
+
+n<-10
+## Number of employee
+p<-6
+##Number of projects
+c<-7
+## Number of classifications
+```
+
+### Modeling
+
+```{r }
+model <- MIPModel() 
+model<-   add_variable(model, X[i,j,k], i=1:n, j=1:p, k=1:c, lb=0, type= "continuous")
+## This variable is to determine the number of hours assigned to a employee on each project with specific classification
+model<- add_variable(model, Y[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary") 
+## a binary variable to determine if employee is assigned on a project with a specific classification
+model<- set_objective(model, sum_expr((X[i,j,k]*P[i,k]), i=1:n, j=1:p, k=1:c), "max")
+## our objective is maximize the profit by multiplying the profit per hour per class (P[i,k]) by the assigned hours to employee i  
+model<- add_constraint (model, Y[i,j,k]<=S[i,k], i=1:n, j=1:p, k=1:c)
+##Constraints of utilization
+model<- add_constraint(model,sum_expr(X[i,j,k], j=1:p, k=1:c) <=1664, i=1:n)
+## no employee can be assigned more hours than the hours that are set in the project for that classification.
+model<- add_constraint(model,sum_expr(X[i,j,k],i=1:n) == Td[j,k], j=1:p, k=1:c)
+##constraints of Big M : linking X[i,j,l] to Y[i,j,k]
+model<- add_constraint (model, X[i,j,k]<=Td[j,k]*Y[i,j,k], i=1:n, j=1:p, k=1:c)
+##Solve the model
+result <- solve_model(model, with_ROI(solver = "glpk"))
+result
+t <- get_solution(result,X[i,j,k])
+
+
+
+```
+
+### Output
+
+```{r}
+BI <- as.matrix(Billingrate)
+startt<-cbind(Billingrate, Classifications)
+
+resss <- cbind(startt, matrix(cbind(t(get_solution(result,X[1,j,1])[,3]),
+      t(get_solution(result,X[2,j,1])[,3]),
+      t(get_solution(result,X[3,j,2])[,3]),
+      t(get_solution(result,X[4,j,2])[,3]),
+      t(get_solution(result,X[5,j,3])[,3]),
+      t(get_solution(result,X[6,j,3])[,3]),
+      t(get_solution(result,X[7,j,4])[,3]),
+      t(get_solution(result,X[8,j,5])[,3]),
+      t(get_solution(result,X[9,j,6])[,3]),
+      t(get_solution(result,X[10,j,7])[,3])
+      ),nrow=10,ncol=6,byrow=TRUE), UtilizationRate)
+```
+
+
