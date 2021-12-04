@@ -116,7 +116,5 @@ Assignement_Table<-t
 
 ```
 
-```{r}
-
-AssignedHours<-matrix( ncol=p, nrow = n, type="continuous")
+```{}
 ```
