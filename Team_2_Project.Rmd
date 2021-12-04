@@ -36,7 +36,7 @@ $T_{j,k}$ [Continuous]{.ul}, Total hours per project for task classification $k$
 $$
  \begin{split}
  \begin{aligned}
-    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} X_{i,j,k} \cdot P_{i,k} \\
+    \text{Maximize  }   &  \sum_{i=1}^{1=n} \sum_{j=1}^{j=p} \sum_{k=1}^{k=c} X_{i,j,k} \cdot P_{i,k} \\
  \end{aligned}
  \end{split}
 $$
@@ -110,7 +110,7 @@ c<-7
 ```{r }
 model <- MIPModel() 
 model<-   add_variable(model, X[i,j,k], i=1:n, j=1:p, k=1:c, lb=0, type= "continuous")
-## This variable is to determine the number of hours assigned to a employee on each project with specific classification
+## This variable is to determine the number of hours assigned to an employee on each project with specific classification
 model<- add_variable(model, Y[i,j,k], i=1:n, j=1:p, k=1:c, type = "binary") 
 ## a binary variable to determine if employee is assigned on a project with a specific classification
 model<- set_objective(model, sum_expr((X[i,j,k]*P[i,k]), i=1:n, j=1:p, k=1:c), "max")
@@ -134,18 +134,13 @@ t <- get_solution(result,X[i,j,k])
 ### Output
 
 ```{r}
-Assignement_T<-cbind(Billingrate, Classifications)
-Assignement_T <- cbind(Assignement_T,
-matrix(cbind(t(get_solution(result,X[1,j,1])[,3]),
-             t(get_solution(result,X[2,j,1])[,3]),
-             t(get_solution(result,X[3,j,2])[,3]),
-             t(get_solution(result,X[4,j,2])[,3]),
-             t(get_solution(result,X[5,j,3])[,3]),
-             t(get_solution(result,X[6,j,3])[,3]),
-             t(get_solution(result,X[7,j,4])[,3]),
-             t(get_solution(result,X[8,j,5])[,3]),
-             t(get_solution(result,X[9,j,6])[,3]),
-             t(get_solution(result,X[10,j,7])[,3])
-      ),nrow=10,ncol=6,byrow=TRUE), UtilizationRate)
+
+for (i in 1:n) {
+  for (k in 1:c) {
+    
+  }
+  Assigned_T<-get_solution(result,X[i,1,k])
+}
+Assigned_T<-matrix(nrow = 1:n, ncol = 1:k)
 
 ```
