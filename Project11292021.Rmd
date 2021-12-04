@@ -5,11 +5,11 @@ date: "12/1/2021"
 output: pdf_document
 ---
 
-$i$ is set of Employees {Emp1, Em2, ..}
+$i$ is set of Employees {E1, E2, ..} varie from 1 to $n=$ total number of employees
 
-$j$ is set of projects { P1, P2, ..}
+$j$ is set of projects { P1, P2, ..} varies one to $p=$ total number of porjects
 
-$k$ is set of classifications {PM, Senior Engineer, Junior Engineer, Senior Designer, Junior Designer, CAD Drafter, Surveyor}
+$k$ is set of classifications {class 1, class 2, ..} varies from 1 to $c=$ number of classifications at the company
 
 [**Variable:**]{.ul}
 
@@ -23,8 +23,6 @@ $S_{i,k}$ =1 [Binary]{.ul}, if employee is qualified to do task $k$
 
 $P_i,_k$: [Continuous]{.ul}, Profit = Hourly rate for employee $i$ classification $k$ in project $j$ \* 10% \*
 
-$E_j$ : [Continuous]{.ul}, Project budget = Not to Exceed (NTE) cost per project
-
 $R_{i,k}$: [Continuous]{.ul}, billing rate for $i$ when performing task classification $k$
 
 $T_{j,k}$ [Continuous]{.ul}, Total hours per project for task classification $k$
@@ -34,31 +32,29 @@ $T_{j,k}$ [Continuous]{.ul}, Total hours per project for task classification $k$
 $$
  \begin{split}
  \begin{aligned}
-    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} X_{i,j,k} P_{i,k} \\
+    \text{Maximize  }   &  \sum_{i} \sum_{j} \sum_{k} X_{i,j,k} \cdot P_{i,k} \\
  \end{aligned}
  \end{split}
 $$
 
 [**Constraints**]{.ul}
 
-$\forall i \sum_{n=0}^{n=k-1} X_{n,j}\cdot\$
+-   Utilization: Total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
 
-Utilization: Total hours assigned to a staff who classified as engineer/ designer/ surveyor should not exceed 1664 hours per year.
+$\sum_{j=1}^{j=p} \sum_{k=1}^{k=c} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
 
-$\sum_{j=1}^{j=NProj} \sum_{k=1}^{k=10} X_{i,j,k} \leq1664 \,\text { hours } \forall i$
-
-T is in place of the Big M
+-   Big M: Linking the constraints, in this scenario each staff can not be assigned more than the total hours per task
 
 $X_{i,j,k}\leq T[j,k] * Y_{i,j,k} \,\forall i,j,k$
 
-Skills set: Every staff $i$ assigned on any project $j$ should have the appropriate skill.
-for example, Junior Engineer can not do Senior Engineer task but the opposite is correct.
+-   Skills set: Every staff $i$ assigned on any project $j$ should have the appropriate skill.
+    for example, Junior Engineer can not do Senior Engineer task but the opposite is correct.
 
-$Y_{i,j,k}<= S_{i,k}\ \forall\ i, j, k$
+$Y_{i,j,k}\leq S_{i,k}\ \forall\ i, j, k$
 
-Total Hours constraints: the total hours for each staff $i$ on every project should be less than or equal than the negotiated hours in the project budget.
+-   Total Hours constraints: the total hours for each staff $i$ on every project should be less than or equal than the negotiated hours in the project budget.
 
-$\sum_{i=1}^{i=NP} X_{i,j,k} \geq T_{j,k} \forall j,k$
+$\sum_{i=1}^{i=n} X_{i,j,k} \geq T_{j,k} \forall j,k$
 
 Including the libraries:
 
@@ -80,7 +76,7 @@ library(readr)
 #library(ROI.plugin.cplex)
 ```
 
-```{r Data}
+```{r Data, echo=FALSE}
 
 XIJ<-readr::read_csv("//Users/riad/!Riad/PhD/Classes/ETM 640/Project/XIJ.csv")
 TS<- readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/StaffSKills.csv")
@@ -88,6 +84,11 @@ S<-t(TS)
 TP<-readr::read_csv("//Users/riad/!Riad/PhD/Classes/ETM 640/Project/PIK.csv")
 P<-t(TP)
 Td <- t(XIJ)
+Assignement_Table<-matrix(0, nrow=10, ncol=9)
+Bilingrate<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/BillingRates.csv")
+Classifications<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/Classifications.csv")
+UtilizationRate<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/UtilizationRate.csv")
+
 n<-10
 ## Number of Staff
 p<-6
@@ -109,6 +110,10 @@ model<- add_constraint(model,sum_expr(X[i,j,k],i=1:n) == Td[j,k], j=1:p, k=1:c)
 model<- add_constraint (model, X[i,j,k]<=Td[j,k]*Y[i,j,k], i=1:n, j=1:p, k=1:c)
 result <- solve_model(model, with_ROI(solver = "glpk"))
 result
+t <- get_solution(result,X[i,j,k])
+Assignement_Table<-t
+
+
 ```
 
 ```{r}
