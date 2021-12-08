@@ -3,8 +3,8 @@ title: "Team 2 Resource Allocation"
 author: "Riad Alharithi, Karthik Manjunath, Jennifer Lynn Zeitouni, Sara Ferdousi, Vladislav Ruchin "
 date: "12/1/2021"
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
 ---
 
 ## Resource Allocation Model
@@ -36,7 +36,7 @@ $T_{j,k}$ [Continuous]{.ul}, Total hours per project for task classification $k$
 $$
  \begin{split}
  \begin{aligned}
-    \text{Maximize  }   &  \sum_{i=1}^{1=n} \sum_{j=1}^{j=p} \sum_{k=1}^{k=c} X_{i,j,k} \cdot P_{i,k} \\
+    \text{Maximize  }   &  \sum_{i=1}^{i=n} \sum_{j=1}^{j=p} \sum_{k=1}^{k=c} X_{i,j,k} \cdot P_{i,k} \\
  \end{aligned}
  \end{split}
 $$
@@ -84,7 +84,7 @@ library(readr)
 
 ### Reading Data
 
-```{r}
+```{r, include= FALSE}
 
 XIJ<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/XIJ.csv")
 TS<- readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/StaffSKills.csv")
@@ -92,7 +92,6 @@ S<-t(TS)
 TP<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/PIK.csv")
 P<-t(TP)
 Td <- t(XIJ)
-##Assignement_Table<-matrix(0, nrow=10, ncol=9)
 Billingrate<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/BillingRates.csv")
 Classifications<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/Classifications.csv")
 UtilizationRate<-readr::read_csv("/Users/riad/!Riad/PhD/Classes/ETM 640/Project/UtilizationRate.csv")
@@ -134,13 +133,15 @@ t <- get_solution(result,X[i,j,k])
 ### Output
 
 ```{r}
-
 for (i in 1:n) {
-  for (k in 1:c) {
-    
-  }
-  Assigned_T<-get_solution(result,X[i,1,k])
-}
-Assigned_T<-matrix(nrow = 1:n, ncol = 1:k)
+for (j in 1:p) {
+for (k in 1:c) {
 
+Assigned_T<- get_solution(result,X[i,j,k]) %>%
+    dplyr::filter(value > .9) 
+  }}}
+for (z in 1:n) {
+assign(paste0("E",z),Assigned_T %>%
+dplyr::filter(i==z))
+}
 ```
