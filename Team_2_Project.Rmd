@@ -49,7 +49,7 @@ $\sum_{j=1}^{j=p} \sum_{k=1}^{k=c} X_{i,j,k} \leq1664 \,\text { hours } \forall 
 
 -   Big M: Linking the constraints, in this scenario each employee can not be assigned more than the total hours per task
 
-$X_{i,j,k}\leq T[j,k] * Y_{i,j,k} \,\forall i,j,k$
+$X_{i,j,k}\leq T_{j,k} * Y_{i,j,k} \,\forall i,j,k$
 
 -   Skills set: Every employee $i$ assigned on any project $j$ should have the appropriate skill. for example, Junior Engineer can not do Senior Engineer task but the opposite is correct.
 
